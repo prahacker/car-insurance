@@ -69,7 +69,7 @@ export default function RegisterPage() {
       if (selectedFile) {
         try {
           const formData = new FormData();
-          formData.append("file", selectedFile);
+          formData.append("image", selectedFile);
           formData.append("claim_id", claimId);
 
           const detectionResponse = await fetch(`${process.env.NEXT_PUBLIC_DAMAGE_DETECTION_API_URL}/detect`, {
