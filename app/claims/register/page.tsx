@@ -1,47 +1,26 @@
 "use client";
 export const dynamic = "force-dynamic";
 
+
 import type React from "react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  Button,
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-  Input,
-  Label,
-  Textarea,
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "../../../components/ui/button"; // Adjust paths based on your project structure
-import {
-  Loader2,
-  Upload,
-  User,
-  Calendar,
-  ImageIcon,
-  CheckCircle2,
-  ArrowRight,
-} from "lucide-react";
-import {
-  generateClaimId,
-  saveClaimToStorage,
-  getClaimById,
-} from "@/lib/utils";
+
+// ✅ Import from correct individual files
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
+import { Loader2, Upload, User, Calendar, ImageIcon, CheckCircle2, ArrowRight } from "lucide-react";
+import { generateClaimId, saveClaimToStorage, getClaimById } from "@/lib/utils";
 import { claimFormSchema, type ClaimFormData } from "@/lib/validations/claim";
+
 
 export default function RegisterPage() {
   const router = useRouter();
