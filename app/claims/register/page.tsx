@@ -26,7 +26,7 @@ import {
   TabsContent,
   TabsList,
   TabsTrigger,
-} from "@/components/ui"; // Adjust paths based on your project structure
+} from "../../../components/ui/button"; // Adjust paths based on your project structure
 import {
   Loader2,
   Upload,
