@@ -1,7 +1,7 @@
 "use client"
 export const dynamic = "force-dynamic";
-
 import type React from "react"
+
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { useForm } from "react-hook-form"
@@ -64,17 +64,45 @@ export default function RegisterPage() {
     try {
       const claimId = generateClaimId();
 
-      let imageUrl = uploadedImage;
+      let imageUrl = null
       let damageAssessment = null;
       if (selectedFile) {
         try {
-          const formData = new FormData();
-          formData.append("image", selectedFile);
-          formData.append("claim_id", claimId);
+          const formData = new FormData()
+          formData.append('file', selectedFile)
+          formData.append('customerName', data.customerName)
+          formData.append('email', data.email)
+          formData.append('phone', data.phone)
+          formData.append('policyNumber', data.policyNumber)
+          formData.append('incidentDate', data.incidentDate)
+          formData.append('incidentType', data.incidentType)
+          formData.append('description', data.description)
+          formData.append('vehicleBrand', data.vehicleBrand)
+          formData.append('vehicleType', data.vehicleType)
 
-          const detectionResponse = await fetch(`${process.env.NEXT_PUBLIC_DAMAGE_DETECTION_API_URL}/detect`, {
+          const response = await fetch(`/api/claims/${claimId}/images`, {
             method: 'POST',
             body: formData,
+          })
+
+          const result = await response.json()
+
+          if (!response.ok) {
+            throw new Error(result.error || 'Failed to upload image')
+          }
+
+          if (!result.url) {
+            throw new Error('Invalid response from server')
+          }
+
+          imageUrl = result.url
+
+          const detectionResponse = await fetch(`/api/claims/${claimId}/detect-damage`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ image_url: imageUrl }),
           });
 
           if (!detectionResponse.ok) {
