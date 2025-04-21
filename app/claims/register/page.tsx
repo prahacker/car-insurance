@@ -1,54 +1,94 @@
 "use client"
 export const dynamic = "force-dynamic";
-import type React from "react"
+import type React from "react";
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Loader2, Upload, User, Calendar, ImageIcon, CheckCircle2, ArrowRight } from "lucide-react"
-import { generateClaimId, saveClaimToStorage, getClaimById } from "@/lib/utils"
-import { claimFormSchema, type ClaimFormData } from "@/lib/validations/claim"
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
+import {
+  Loader2,
+  Upload,
+  User,
+  Calendar,
+  ImageIcon,
+  CheckCircle2,
+  ArrowRight,
+} from "lucide-react";
+import {
+  generateClaimId,
+  saveClaimToStorage,
+  getClaimById,
+} from "@/lib/utils";
+import {
+  claimFormSchema,
+  type ClaimFormData,
+} from "@/lib/validations/claim";
 
 export default function RegisterPage() {
-  const router = useRouter()
-  const [activeTab, setActiveTab] = useState("customer")
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [uploadedImage, setUploadedImage] = useState<string | null>(null)
-  const form = useForm<ClaimFormData>({    
+  const router = useRouter();
+  const [activeTab, setActiveTab] = useState("customer");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [uploadedImage, setUploadedImage] = useState<string | null>(null);
+  const form = useForm<ClaimFormData>({
     mode: "onChange",
     resolver: zodResolver(claimFormSchema),
     defaultValues: {
-    customerName: "",
-    email: "",
-    phone: "",
-    policyNumber: "",
-    incidentDate: "",
-    incidentType: undefined,
-    description: "",
-    vehicleBrand: "",
-    vehicleType: undefined,
-  }})
+      customerName: "",
+      email: "",
+      phone: "",
+      policyNumber: "",
+      incidentDate: "",
+      incidentType: undefined,
+      description: "",
+      vehicleBrand: "",
+      vehicleType: undefined,
+    },
+  });
 
-  const { register, handleSubmit: handleFormSubmit, formState: { errors }, setValue, watch } = form
+  const {
+    register,
+    handleSubmit: handleFormSubmit,
+    formState: { errors },
+    setValue,
+    watch,
+  } = form;
 
-  const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
+    const file = e.target.files?.[0];
     if (file) {
-      setSelectedFile(file)
-      const previewUrl = URL.createObjectURL(file)
-      setUploadedImage(previewUrl)
+      setSelectedFile(file);
+      const previewUrl = URL.createObjectURL(file);
+      setUploadedImage(previewUrl);
     }
-  }
+  };
 
   const onSubmit = async (data: ClaimFormData) => {
     if (activeTab !== "review") {
@@ -63,78 +103,84 @@ export default function RegisterPage() {
 
     try {
       const claimId = generateClaimId();
-
-      let imageUrl = null
+      let imageUrl = null;
       let damageAssessment = null;
+
       if (selectedFile) {
         try {
-          const formData = new FormData()
-          formData.append('file', selectedFile)
-          formData.append('customerName', data.customerName)
-          formData.append('email', data.email)
-          formData.append('phone', data.phone)
-          formData.append('policyNumber', data.policyNumber)
-          formData.append('incidentDate', data.incidentDate)
-          formData.append('incidentType', data.incidentType)
-          formData.append('description', data.description)
-          formData.append('vehicleBrand', data.vehicleBrand)
-          formData.append('vehicleType', data.vehicleType)
+          const formData = new FormData();
+          formData.append("file", selectedFile);
+          formData.append("customerName", data.customerName);
+          formData.append("email", data.email);
+          formData.append("phone", data.phone);
+          formData.append("policyNumber", data.policyNumber);
+          formData.append("incidentDate", data.incidentDate);
+          formData.append("incidentType", data.incidentType);
+          formData.append("description", data.description);
+          formData.append("vehicleBrand", data.vehicleBrand);
+          formData.append("vehicleType", data.vehicleType);
 
           const response = await fetch(`/api/claims/${claimId}/images`, {
-            method: 'POST',
+            method: "POST",
             body: formData,
-          })
+          });
 
-          const result = await response.json()
+          const result = await response.json();
 
           if (!response.ok) {
-            throw new Error(result.error || 'Failed to upload image')
+            throw new Error(result.error || "Failed to upload image");
           }
 
           if (!result.url) {
-            throw new Error('Invalid response from server')
+            throw new Error("Invalid response from server");
           }
 
-          imageUrl = result.url
+          imageUrl = result.url;
 
-          const detectionResponse = await fetch(`/api/claims/${claimId}/detect-damage`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ image_url: imageUrl }),
-          });
+          const detectionResponse = await fetch(
+            `/api/claims/${claimId}/detect-damage`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ image_url: imageUrl }),
+            }
+          );
 
           if (!detectionResponse.ok) {
-            throw new Error('Failed to get damage assessment');
+            throw new Error("Failed to get damage assessment");
           }
 
           damageAssessment = await detectionResponse.json();
 
-          // External damage detection API call
           const formDataExternal = new FormData();
-          formDataExternal.append('image', selectedFile);
-          formDataExternal.append('claim_id', claimId);
+          formDataExternal.append("image", selectedFile);
+          formDataExternal.append("claim_id", claimId);
 
           const externalDetectionResponse = await fetch(
-            'https://ko1wvtb6rc.execute-api.ap-south-1.amazonaws.com/detect',
+            "https://ko1wvtb6rc.execute-api.ap-south-1.amazonaws.com/detect",
             {
-              method: 'POST',
+              method: "POST",
               body: formDataExternal,
             }
           );
 
           if (!externalDetectionResponse.ok) {
-            throw new Error('External damage detection API failed');
+            throw new Error("External damage detection API failed");
           }
 
           const externalResult = await externalDetectionResponse.json();
-          console.log('External API Result:', externalResult);
+          console.log("External API Result:", externalResult);
         } catch (error) {
-          console.error('Image upload or assessment error:', error);
-          alert(error instanceof Error ? error.message : 'Failed to process image');
-          setIsSubmitting(false)
-          return
+          console.error("Image upload or assessment error:", error);
+          alert(
+            error instanceof Error
+              ? error.message
+              : "Failed to process image"
+          );
+          setIsSubmitting(false);
+          return;
         }
       }
 
@@ -148,11 +194,12 @@ export default function RegisterPage() {
       };
 
       saveClaimToStorage(claimData);
-
       const savedClaim = getClaimById(claimId);
+
       if (!savedClaim) {
         throw new Error("Failed to save claim data");
       }
+
       router.push(`/claims/${claimId}`);
     } catch (error) {
       console.error("Error submitting claim:", error);
@@ -161,33 +208,44 @@ export default function RegisterPage() {
   };
 
   const nextTab = () => {
-    if (activeTab === "customer") setActiveTab("incident")
-    else if (activeTab === "incident") setActiveTab("evidence")
-    else if (activeTab === "evidence") setActiveTab("review")
-    else if (activeTab === "review") setActiveTab("review")
-  }
+    if (activeTab === "customer") setActiveTab("incident");
+    else if (activeTab === "incident") setActiveTab("evidence");
+    else if (activeTab === "evidence") setActiveTab("review");
+  };
 
   const prevTab = () => {
-    if (activeTab === "incident") setActiveTab("customer")
-    else if (activeTab === "evidence") setActiveTab("incident")
-    else if (activeTab === "review") setActiveTab("evidence")
-  }
+    if (activeTab === "incident") setActiveTab("customer");
+    else if (activeTab === "evidence") setActiveTab("incident");
+    else if (activeTab === "review") setActiveTab("evidence");
+  };
 
   const isTabComplete = (tab: string) => {
     const formValues = watch();
     const hasErrors = Object.keys(errors).length > 0;
-
     switch (tab) {
       case "customer":
-        return !hasErrors && formValues.customerName && formValues.email && formValues.phone && formValues.policyNumber
+        return (
+          !hasErrors &&
+          formValues.customerName &&
+          formValues.email &&
+          formValues.phone &&
+          formValues.policyNumber
+        );
       case "incident":
-        return !hasErrors && formValues.incidentDate && formValues.incidentType && formValues.description && formValues.vehicleBrand && formValues.vehicleType
+        return (
+          !hasErrors &&
+          formValues.incidentDate &&
+          formValues.incidentType &&
+          formValues.description &&
+          formValues.vehicleBrand &&
+          formValues.vehicleType
+        );
       case "evidence":
-        return true
+        return true;
       default:
-        return false
+        return false;
     }
-  }
+  };
 
   return (
     <div className="container mx-auto py-10">
@@ -198,10 +256,10 @@ export default function RegisterPage() {
         </CardHeader>
         <form onSubmit={handleFormSubmit(onSubmit)}>
           <Tabs value={activeTab} onValueChange={(value) => {
-            if (value === "incident" && !isTabComplete("customer")) return
-            if (value === "evidence" && !isTabComplete("incident")) return
-            if (value === "review" && !isTabComplete("evidence")) return
-            setActiveTab(value)
+            if (value === "incident" && !isTabComplete("customer")) return;
+            if (value === "evidence" && !isTabComplete("incident")) return;
+            if (value === "review" && !isTabComplete("evidence")) return;
+            setActiveTab(value);
           }} className="w-full">
             <div className="px-6">
               <TabsList className="grid w-full grid-cols-4">
@@ -209,15 +267,15 @@ export default function RegisterPage() {
                   <User className="h-4 w-4" />
                   <span className="hidden sm:inline">Customer</span>
                 </TabsTrigger>
-                <TabsTrigger value="incident" className={flex items-center gap-2 ${!isTabComplete("customer") ? "cursor-not-allowed" : ""}}>
+                <TabsTrigger value="incident" className={`flex items-center gap-2 ${!isTabComplete("customer") ? "cursor-not-allowed" : ""}`}>
                   <Calendar className="h-4 w-4" />
                   <span className="hidden sm:inline">Incident</span>
                 </TabsTrigger>
-                <TabsTrigger value="evidence" className={flex items-center gap-2 ${!isTabComplete("incident") ? "cursor-not-allowed" : ""}}>
+                <TabsTrigger value="evidence" className={`flex items-center gap-2 ${!isTabComplete("incident") ? "cursor-not-allowed" : ""}`}>
                   <ImageIcon className="h-4 w-4" />
                   <span className="hidden sm:inline">Evidence</span>
                 </TabsTrigger>
-                <TabsTrigger value="review" className={flex items-center gap-2 ${!isTabComplete("evidence") ? "cursor-not-allowed" : ""}}>
+                <TabsTrigger value="review" className={`flex items-center gap-2 ${!isTabComplete("evidence") ? "cursor-not-allowed" : ""}`}>
                   <CheckCircle2 className="h-4 w-4" />
                   <span className="hidden sm:inline">Review</span>
                 </TabsTrigger>
@@ -547,5 +605,5 @@ export default function RegisterPage() {
         </div>
       )}
     </div>
-  )
+  );
 }
